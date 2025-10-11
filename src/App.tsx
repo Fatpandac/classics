@@ -32,10 +32,12 @@ import {
   SelectValue,
 } from "./components/ui/select";
 import PreinfoForm, { type PreinfoData } from "./PreinfoForm";
-import { useEffect, useState } from "react";
-import Preview from "./Preview";
+import { VisuallyHidden } from "@radix-ui/react-visually-hidden";
+import { useState } from "react";
+import Preview, { type Event } from "./Preview";
 import { Dialog, DialogContent, DialogTrigger } from "./components/ui/dialog";
 import { generateEvent } from "./utils/ics";
+import { DialogTitle } from "@radix-ui/react-dialog";
 
 const eventSchema = z.object({
   id: z.uuid(),
@@ -52,11 +54,6 @@ const formSchema = z.object({
 });
 
 export type FormEvent = z.infer<typeof eventSchema>;
-export type Event = {
-  title: string;
-  from: string;
-  to: string;
-};
 
 function App() {
   const [preinfo, setPreinfo] = useState<DeepPartial<PreinfoData>>({});
@@ -88,10 +85,6 @@ function App() {
   };
 
   const events = useWatch({ control: form.control, name: "events" });
-
-  useEffect(() => {
-    setPreviewEvents(generateEvent(events, preinfo));
-  }, [events]);
 
   return (
     <div className="h-screen w-screen p-10">
@@ -295,13 +288,22 @@ function App() {
           <div className="w-full flex justify-end gap-2">
             <Dialog>
               <DialogTrigger className="cursor-pointer" asChild>
-                <Button variant="outline">
+                <Button
+                  variant="outline"
+                  onClick={() => {
+                    const data = generateEvent(events, preinfo);
+                    setPreviewEvents(data);
+                  }}
+                >
                   Preview
                   <EyeIcon className="ml-2" />
                 </Button>
               </DialogTrigger>
               <DialogContent className="w-3/4! max-w-3/4! p-0! aspect-video">
-                <Preview />
+                <VisuallyHidden>
+                  <DialogTitle />
+                </VisuallyHidden>
+                <Preview events={preveiwEvents} />
               </DialogContent>
             </Dialog>
             <Button className="cursor-pointer" type="submit">

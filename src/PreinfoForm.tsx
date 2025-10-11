@@ -46,7 +46,7 @@ function PreinfoForm(props: { onChange: (data: DeepPartial<PreinfoData>) => void
       maxWeek: 20,
       classStartTime: [{ time: "08:00" }],
       classTime: 45,
-      startDate: new Date(),
+      startDate: dayjs().startOf("week").add(1, "day").toDate(),
     },
   });
 
