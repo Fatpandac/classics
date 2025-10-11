@@ -1,100 +1,251 @@
-import * as React from "react";
-import { formatDateRange } from "little-date";
-import { Calendar, CalendarDayButton } from "@/components/ui/calendar";
-import { Card, CardContent } from "@/components/ui/card";
-import { Badge } from "lucide-react";
+import { useForm, useFieldArray } from "react-hook-form";
+import { zodResolver } from "@hookform/resolvers/zod";
+import {
+  Form,
+  FormControl,
+  FormField,
+  FormItem,
+  FormLabel,
+  FormMessage,
+} from "./components/ui/form";
+import { Input } from "./components/ui/input";
+import { Button } from "./components/ui/button";
+import { number, z } from "zod";
+import { MinusCircleIcon, PlusIcon } from "lucide-react";
+import { MultiSelect } from "./components/multi-select";
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from "./components/ui/select";
 
-const events = [
-  {
-    title: "Team Sync Meeting",
-    from: "2025-10-01T09:00:00",
-    to: "2025-10-01T10:00:00",
-  },
-  {
-    title: "Design Review",
-    from: "2025-10-01T11:30:00",
-    to: "2025-10-01T12:30:00",
-  },
-  {
-    title: "Client Presentation",
-    from: "2025-10-01T14:00:00",
-    to: "2025-10-01T15:00:00",
-  },
-];
+const dynamicFieldSchema = z.object({
+  id: z.uuid(),
+  class: z.string().min(1, "请输入课程名称"),
+  teacher: z.string().optional(),
+  location: z.string().optional(),
+  week: z.array(number().min(1).max(20)).min(1, "请选择上课周次").max(20),
+  weekdays: z.number().min(1, "请选择上课星期").max(7, "最多选择星期天"),
+  time: z.array(number()).min(1, "请选择上课节次").max(20),
+});
 
-export default function App() {
-  const [date, setDate] = React.useState<Date>(new Date(2025, 9, 1));
+const formSchema = z.object({
+  dynamicFields: z
+    .array(dynamicFieldSchema)
+    .min(1, "Add at least one dynamic field"),
+});
 
-  const currentDayEvents = React.useMemo(() => {
-    return events.filter((event) => {
-      const eventDate = new Date(event.from);
-      return (
-        eventDate.getFullYear() === date.getFullYear() &&
-        eventDate.getMonth() === date.getMonth() &&
-        eventDate.getDate() === date.getDate()
-      );
-    });
-  }, [date]);
+function App() {
+  const form = useForm<z.infer<typeof formSchema>>({
+    resolver: zodResolver(formSchema),
+    defaultValues: {
+      dynamicFields: [
+        {
+          id: crypto.randomUUID(),
+          class: "",
+          teacher: "",
+          location: "",
+          week: [],
+          weekdays: 0,
+          time: [],
+        },
+      ],
+    },
+  });
+
+  const { fields, append, remove } = useFieldArray({
+    control: form.control,
+    name: "dynamicFields",
+  });
+
+  const onSubmit = (data: z.infer<typeof formSchema>) => {
+    console.log(data);
+  };
 
   return (
-    <div className="h-screen w-screen flex items-center justify-center bg-gray-100">
-      <Card className="w-4/5 py-4">
-        <CardContent className="px-4 display flex flex-row gap-4 h-full">
-          <Calendar
-            mode="single"
-            selected={date}
-            onSelect={setDate}
-            className="bg-transparent p-0 h-auto flex-1"
-            components={{
-              DayButton: ({ children, modifiers, day, ...props }) => {
-                const currentDayEvents = events.filter((event) => {
-                  const eventDate = new Date(event.from);
-                  return (
-                    eventDate.getFullYear() === day.date.getFullYear() &&
-                    eventDate.getMonth() === day.date.getMonth() &&
-                    eventDate.getDate() === day.date.getDate()
-                  );
-                });
-                return (
-                  <CalendarDayButton day={day} modifiers={modifiers} {...props}>
-                    {children}
-                    <div className="absolute bottom-2 left-1 right-1 flex justify-center gap-0.5">
-                      {!modifiers.outside &&
-                        currentDayEvents.length > 0 &&
-                        currentDayEvents.map((event) => {
-                          return (
-                            <Badge
-                              className="h-5 min-w-5 rounded-full px-1 font-mono tabular-nums"
-                              key={event.title}
-                            >
-                              1
-                            </Badge>
-                          );
-                        })}
-                    </div>
-                  </CalendarDayButton>
-                );
-              },
-            }}
-            required
-          />
-          <div className="no-scrollbar w-1/3">
-            <div className="flex w-full flex-col gap-2">
-              {currentDayEvents.length > 0 && events.map((event) => (
-                <div
-                  key={event.title}
-                  className="bg-muted after:bg-primary/70 relative rounded-md p-2 pl-6 text-sm after:absolute after:inset-y-2 after:left-2 after:w-1 after:rounded-full"
-                >
-                  <div className="font-medium">{event.title}</div>
-                  <div className="text-muted-foreground text-xs">
-                    {formatDateRange(new Date(event.from), new Date(event.to))}
-                  </div>
+    <div className="h-screen w-screen p-10">
+      <Form {...form}>
+        <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-4">
+          {fields.map((field, index) => (
+            <div
+              key={field.id}
+              className="flex items-end space-x-2 not-last:border-b not-last:pb-4"
+            >
+              <div className="flex-1 space-y-2">
+                <div className="grid grid-cols-4 gap-4">
+                  <FormField
+                    control={form.control}
+                    name={`dynamicFields.${index}.class`}
+                    render={({ field: dynamicField }) => (
+                      <FormItem>
+                        {index === 0 && <FormLabel>课程名称</FormLabel>}
+                        <FormControl>
+                          <Input
+                            {...dynamicField}
+                            placeholder="请输入课程名称"
+                          />
+                        </FormControl>
+                        <FormMessage />
+                      </FormItem>
+                    )}
+                  />
+                  <FormField
+                    control={form.control}
+                    name={`dynamicFields.${index}.teacher`}
+                    render={({ field: dynamicField }) => (
+                      <FormItem>
+                        {index === 0 && <FormLabel>教师名称</FormLabel>}
+                        <FormControl>
+                          <Input
+                            {...dynamicField}
+                            placeholder="请输入教师名称"
+                          />
+                        </FormControl>
+                        <FormMessage />
+                      </FormItem>
+                    )}
+                  />
+                  <FormField
+                    control={form.control}
+                    name={`dynamicFields.${index}.location`}
+                    render={({ field: dynamicField }) => (
+                      <FormItem>
+                        {index === 0 && <FormLabel>上课地址</FormLabel>}
+                        <FormControl>
+                          <Input
+                            {...dynamicField}
+                            placeholder="请输入上课地址"
+                          />
+                        </FormControl>
+                        <FormMessage />
+                      </FormItem>
+                    )}
+                  />
+                  <FormField
+                    control={form.control}
+                    name={`dynamicFields.${index}.weekdays`}
+                    render={({ field }) => (
+                      <FormItem>
+                        {index === 0 && <FormLabel>星期</FormLabel>}
+                        <Select>
+                          <FormControl>
+                            <SelectTrigger className="w-full">
+                              <SelectValue placeholder="选择星期" />
+                            </SelectTrigger>
+                          </FormControl>
+                          <FormMessage />
+                          <SelectContent>
+                            {["一", "二", "三", "四", "五", "六", "日"].map(
+                              (day, i) => (
+                                <SelectItem
+                                  key={i}
+                                  value={(i + 1).toString()}
+                                  onClick={() => field.onChange(i + 1)}
+                                >
+                                  周{day}
+                                </SelectItem>
+                              ),
+                            )}
+                          </SelectContent>
+                        </Select>
+                      </FormItem>
+                    )}
+                  />
                 </div>
-              ))}
+                <div className="grid grid-cols-2 gap-2">
+                  <FormField
+                    control={form.control}
+                    name={`dynamicFields.${index}.week`}
+                    render={({ field }) => (
+                      <FormItem>
+                        {index === 0 && <FormLabel>排课周次</FormLabel>}
+                        <FormControl>
+                          <MultiSelect
+                            maxCount={3}
+                            searchable={false}
+                            className="w-full! min-h-9! h-9!"
+                            options={Array.from({ length: 20 }, (_, i) => ({
+                              label: `第 ${i + 1} 周`,
+                              value: `${i + 1}`,
+                            }))}
+                            onValueChange={(values) => {
+                              field.onChange(values.map(Number));
+                            }}
+                            defaultValue={field.value.map(String)}
+                            placeholder="选择周次"
+                          />
+                        </FormControl>
+                        <FormMessage />
+                      </FormItem>
+                    )}
+                  />
+                  <FormField
+                    control={form.control}
+                    name={`dynamicFields.${index}.time`}
+                    render={({ field }) => (
+                      <FormItem>
+                        {index === 0 && <FormLabel>排课节次</FormLabel>}
+                        <FormControl>
+                          <MultiSelect
+                            maxCount={3}
+                            searchable={false}
+                            className="w-full! min-h-9! h-9!"
+                            options={Array.from({ length: 20 }, (_, i) => ({
+                              label: `第 ${i + 1} 节`,
+                              value: `${i + 1}`,
+                            }))}
+                            onValueChange={(values) => {
+                              field.onChange(values.map(Number));
+                            }}
+                            defaultValue={field.value.map(String)}
+                            placeholder="选择节次"
+                          />
+                        </FormControl>
+                        <FormMessage />
+                      </FormItem>
+                    )}
+                  />
+                </div>
+              </div>
+              <div>
+                <Button
+                  type="button"
+                  variant="ghost"
+                  className="cursor-pointer"
+                  onClick={() => {
+                    if (fields.length > 1) remove(index);
+                  }}
+                >
+                  <MinusCircleIcon />
+                </Button>
+              </div>
             </div>
-          </div>
-        </CardContent>
-      </Card>
+          ))}
+          <Button
+            type="button"
+            variant="outline"
+            className="cursor-pointer w-full border-dashed"
+            onClick={() =>
+              append({
+                id: crypto.randomUUID(),
+                class: "",
+                teacher: "",
+                location: "",
+                week: [],
+                weekdays: 0,
+                time: [],
+              })
+            }
+          >
+            <PlusIcon className="text-gray-400" />
+          </Button>
+          <Button type="submit">Submit</Button>
+        </form>
+      </Form>
     </div>
   );
 }
+
+export default App;
