@@ -11,7 +11,7 @@ import {
 import { Input } from "./components/ui/input";
 import { Button } from "./components/ui/button";
 import { number, z } from "zod";
-import { CopyIcon, MinusCircleIcon, PlusIcon } from "lucide-react";
+import { CopyIcon, EyeIcon, MinusCircleIcon, PlusIcon, UploadIcon } from "lucide-react";
 import { MultiSelect } from "./components/multi-select";
 import {
   Select,
@@ -258,8 +258,15 @@ function App() {
           >
             <PlusIcon className="text-gray-400" />
           </Button>
-          <div className="w-full flex justify-end">
-            <Button type="submit">Submit</Button>
+          <div className="w-full flex justify-end gap-2">
+            <Button className="cursor-pointer" type="button">
+              Preview
+              <EyeIcon className="ml-2" />
+            </Button>
+            <Button className="cursor-pointer" type="submit">
+              Submit
+              <UploadIcon className="ml-2" />
+            </Button>
           </div>
         </form>
       </Form>
