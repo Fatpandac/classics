@@ -1,4 +1,9 @@
-import { useForm, useFieldArray, type DeepPartial } from "react-hook-form";
+import {
+  useForm,
+  useFieldArray,
+  type DeepPartial,
+  useWatch,
+} from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import {
   Form,
@@ -27,13 +32,14 @@ import {
   SelectValue,
 } from "./components/ui/select";
 import PreinfoForm, { type PreinfoData } from "./PreinfoForm";
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import Preview from "./Preview";
 import { Dialog, DialogContent, DialogTrigger } from "./components/ui/dialog";
+import { generateEvent } from "./utils/ics";
 
-const dynamicFieldSchema = z.object({
+const eventSchema = z.object({
   id: z.uuid(),
-  class: z.string().min(1, "请输入课程名称"),
+  classname: z.string().min(1, "请输入课程名称"),
   teacher: z.string().optional(),
   location: z.string().optional(),
   week: z.array(number().min(1).max(20)).min(1, "请选择上课周次").max(20),
@@ -42,20 +48,26 @@ const dynamicFieldSchema = z.object({
 });
 
 const formSchema = z.object({
-  dynamicFields: z
-    .array(dynamicFieldSchema)
-    .min(1, "Add at least one dynamic field"),
+  events: z.array(eventSchema).min(1, "Add at least one dynamic field"),
 });
+
+export type FormEvent = z.infer<typeof eventSchema>;
+export type Event = {
+  title: string;
+  from: string;
+  to: string;
+};
 
 function App() {
   const [preinfo, setPreinfo] = useState<DeepPartial<PreinfoData>>({});
+  const [preveiwEvents, setPreviewEvents] = useState<Array<Event>>([]);
   const form = useForm<z.infer<typeof formSchema>>({
     resolver: zodResolver(formSchema),
     defaultValues: {
-      dynamicFields: [
+      events: [
         {
           id: crypto.randomUUID(),
-          class: "",
+          classname: "",
           teacher: "",
           location: "",
           week: [],
@@ -68,12 +80,18 @@ function App() {
 
   const { fields, append, remove } = useFieldArray({
     control: form.control,
-    name: "dynamicFields",
+    name: "events",
   });
 
   const onSubmit = (data: z.infer<typeof formSchema>) => {
     console.log(data);
   };
+
+  const events = useWatch({ control: form.control, name: "events" });
+
+  useEffect(() => {
+    setPreviewEvents(generateEvent(events, preinfo));
+  }, [events]);
 
   return (
     <div className="h-screen w-screen p-10">
@@ -93,7 +111,7 @@ function App() {
                 <div className="grid grid-cols-4 gap-4">
                   <FormField
                     control={form.control}
-                    name={`dynamicFields.${index}.class`}
+                    name={`events.${index}.classname`}
                     render={({ field: dynamicField }) => (
                       <FormItem>
                         {index === 0 && <FormLabel>课程名称</FormLabel>}
@@ -109,7 +127,7 @@ function App() {
                   />
                   <FormField
                     control={form.control}
-                    name={`dynamicFields.${index}.teacher`}
+                    name={`events.${index}.teacher`}
                     render={({ field: dynamicField }) => (
                       <FormItem>
                         {index === 0 && <FormLabel>教师名称</FormLabel>}
@@ -125,7 +143,7 @@ function App() {
                   />
                   <FormField
                     control={form.control}
-                    name={`dynamicFields.${index}.location`}
+                    name={`events.${index}.location`}
                     render={({ field: dynamicField }) => (
                       <FormItem>
                         {index === 0 && <FormLabel>上课地址</FormLabel>}
@@ -141,7 +159,7 @@ function App() {
                   />
                   <FormField
                     control={form.control}
-                    name={`dynamicFields.${index}.weekdays`}
+                    name={`events.${index}.weekdays`}
                     render={({ field }) => (
                       <FormItem>
                         {index === 0 && <FormLabel>星期</FormLabel>}
@@ -173,7 +191,7 @@ function App() {
                 <div className="grid grid-cols-2 gap-2">
                   <FormField
                     control={form.control}
-                    name={`dynamicFields.${index}.week`}
+                    name={`events.${index}.week`}
                     render={({ field }) => (
                       <FormItem>
                         {index === 0 && <FormLabel>排课周次</FormLabel>}
@@ -202,7 +220,7 @@ function App() {
                   />
                   <FormField
                     control={form.control}
-                    name={`dynamicFields.${index}.time`}
+                    name={`events.${index}.time`}
                     render={({ field }) => (
                       <FormItem>
                         {index === 0 && <FormLabel>排课节次</FormLabel>}
@@ -237,7 +255,7 @@ function App() {
                   variant="ghost"
                   className="cursor-pointer"
                   onClick={() => {
-                    const field = form.getValues(`dynamicFields.${index}`);
+                    const field = form.getValues(`events.${index}`);
                     append({ ...field, id: crypto.randomUUID() });
                   }}
                 >
@@ -263,7 +281,7 @@ function App() {
             onClick={() =>
               append({
                 id: crypto.randomUUID(),
-                class: "",
+                classname: "",
                 teacher: "",
                 location: "",
                 week: [],
