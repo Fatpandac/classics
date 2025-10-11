@@ -11,7 +11,13 @@ import {
 import { Input } from "./components/ui/input";
 import { Button } from "./components/ui/button";
 import { number, z } from "zod";
-import { CopyIcon, EyeIcon, MinusCircleIcon, PlusIcon, UploadIcon } from "lucide-react";
+import {
+  CopyIcon,
+  EyeIcon,
+  FileDownIcon,
+  MinusCircleIcon,
+  PlusIcon,
+} from "lucide-react";
 import { MultiSelect } from "./components/multi-select";
 import {
   Select,
@@ -22,6 +28,8 @@ import {
 } from "./components/ui/select";
 import PreinfoForm, { type PreinfoData } from "./PreinfoForm";
 import { useState } from "react";
+import Preview from "./Preview";
+import { Dialog, DialogContent, DialogTrigger } from "./components/ui/dialog";
 
 const dynamicFieldSchema = z.object({
   id: z.uuid(),
@@ -69,9 +77,11 @@ function App() {
 
   return (
     <div className="h-screen w-screen p-10">
-      <PreinfoForm onChange={(valuse) => {
-        setPreinfo(valuse)
-      }}/>
+      <PreinfoForm
+        onChange={(valuse) => {
+          setPreinfo(valuse);
+        }}
+      />
       <Form {...form}>
         <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-4">
           {fields.map((field, index) => (
@@ -172,10 +182,13 @@ function App() {
                             maxCount={3}
                             searchable={false}
                             className="w-full! min-h-9! h-9!"
-                            options={Array.from({ length: preinfo.maxWeek ?? 20 }, (_, i) => ({
-                              label: `第 ${i + 1} 周`,
-                              value: `${i + 1}`,
-                            }))}
+                            options={Array.from(
+                              { length: preinfo.maxWeek ?? 20 },
+                              (_, i) => ({
+                                label: `第 ${i + 1} 周`,
+                                value: `${i + 1}`,
+                              }),
+                            )}
                             onValueChange={(values) => {
                               field.onChange(values.map(Number));
                             }}
@@ -198,10 +211,13 @@ function App() {
                             maxCount={3}
                             searchable={false}
                             className="w-full! min-h-9! h-9!"
-                            options={Array.from({ length: preinfo.classStartTime?.length ?? 20 }, (_, i) => ({
-                              label: `第 ${i + 1} 节`,
-                              value: `${i + 1}`,
-                            }))}
+                            options={Array.from(
+                              { length: preinfo.classStartTime?.length ?? 20 },
+                              (_, i) => ({
+                                label: `第 ${i + 1} 节`,
+                                value: `${i + 1}`,
+                              }),
+                            )}
                             onValueChange={(values) => {
                               field.onChange(values.map(Number));
                             }}
@@ -259,13 +275,20 @@ function App() {
             <PlusIcon className="text-gray-400" />
           </Button>
           <div className="w-full flex justify-end gap-2">
-            <Button className="cursor-pointer" type="button">
-              Preview
-              <EyeIcon className="ml-2" />
-            </Button>
+            <Dialog>
+              <DialogTrigger className="cursor-pointer" asChild>
+                <Button variant="outline">
+                  Preview
+                  <EyeIcon className="ml-2" />
+                </Button>
+              </DialogTrigger>
+              <DialogContent className="w-3/4! max-w-3/4! p-0! aspect-video">
+                <Preview />
+              </DialogContent>
+            </Dialog>
             <Button className="cursor-pointer" type="submit">
-              Submit
-              <UploadIcon className="ml-2" />
+              Export
+              <FileDownIcon className="ml-2" />
             </Button>
           </div>
         </form>

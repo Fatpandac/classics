@@ -2,7 +2,7 @@ import * as React from "react";
 import { formatDateRange } from "little-date";
 import { Calendar, CalendarDayButton } from "@/components/ui/calendar";
 import { Card, CardContent } from "@/components/ui/card";
-import { Badge } from "lucide-react";
+import { Badge } from "@/components/ui/badge";
 
 const events = [
   {
@@ -37,8 +37,8 @@ export default function Preview() {
   }, [date]);
 
   return (
-    <div className="h-screen w-screen flex items-center justify-center bg-gray-100">
-      <Card className="w-4/5 py-4">
+    <div className="h-full w-full flex items-center justify-center my-2 p-4">
+      <Card className="h-full w-full border-none shadow-none">
         <CardContent className="px-4 display flex flex-row gap-4 h-full">
           <Calendar
             mode="single"
@@ -64,11 +64,9 @@ export default function Preview() {
                         currentDayEvents.map((event) => {
                           return (
                             <Badge
-                              className="h-5 min-w-5 rounded-full px-1 font-mono tabular-nums"
+                              className="h-1! w-1! p-1 rounded-full tabular-nums bg-blue-300"
                               key={event.title}
-                            >
-                              1
-                            </Badge>
+                            ></Badge>
                           );
                         })}
                     </div>
@@ -80,17 +78,21 @@ export default function Preview() {
           />
           <div className="no-scrollbar w-1/3">
             <div className="flex w-full flex-col gap-2">
-              {currentDayEvents.length > 0 && events.map((event) => (
-                <div
-                  key={event.title}
-                  className="bg-muted after:bg-primary/70 relative rounded-md p-2 pl-6 text-sm after:absolute after:inset-y-2 after:left-2 after:w-1 after:rounded-full"
-                >
-                  <div className="font-medium">{event.title}</div>
-                  <div className="text-muted-foreground text-xs">
-                    {formatDateRange(new Date(event.from), new Date(event.to))}
+              {currentDayEvents.length > 0 &&
+                events.map((event) => (
+                  <div
+                    key={event.title}
+                    className="bg-muted after:bg-primary/70 relative rounded-md p-2 pl-6 text-sm after:absolute after:inset-y-2 after:left-2 after:w-1 after:rounded-full"
+                  >
+                    <div className="font-medium">{event.title}</div>
+                    <div className="text-muted-foreground text-xs">
+                      {formatDateRange(
+                        new Date(event.from),
+                        new Date(event.to),
+                      )}
+                    </div>
                   </div>
-                </div>
-              ))}
+                ))}
             </div>
           </div>
         </CardContent>
