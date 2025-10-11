@@ -1,4 +1,4 @@
-import { useForm, useFieldArray } from "react-hook-form";
+import { useForm, useFieldArray, type DeepPartial } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import {
   Form,
@@ -11,7 +11,7 @@ import {
 import { Input } from "./components/ui/input";
 import { Button } from "./components/ui/button";
 import { number, z } from "zod";
-import { MinusCircleIcon, PlusIcon } from "lucide-react";
+import { CopyIcon, MinusCircleIcon, PlusIcon } from "lucide-react";
 import { MultiSelect } from "./components/multi-select";
 import {
   Select,
@@ -20,6 +20,8 @@ import {
   SelectTrigger,
   SelectValue,
 } from "./components/ui/select";
+import PreinfoForm, { type PreinfoData } from "./PreinfoForm";
+import { useState } from "react";
 
 const dynamicFieldSchema = z.object({
   id: z.uuid(),
@@ -38,6 +40,7 @@ const formSchema = z.object({
 });
 
 function App() {
+  const [preinfo, setPreinfo] = useState<DeepPartial<PreinfoData>>({});
   const form = useForm<z.infer<typeof formSchema>>({
     resolver: zodResolver(formSchema),
     defaultValues: {
@@ -66,12 +69,15 @@ function App() {
 
   return (
     <div className="h-screen w-screen p-10">
+      <PreinfoForm onChange={(valuse) => {
+        setPreinfo(valuse)
+      }}/>
       <Form {...form}>
         <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-4">
           {fields.map((field, index) => (
             <div
               key={field.id}
-              className="flex items-end space-x-2 not-last:border-b not-last:pb-4"
+              className="flex items-end space-x-2 not-last:pb-3"
             >
               <div className="flex-1 space-y-2">
                 <div className="grid grid-cols-4 gap-4">
@@ -166,7 +172,7 @@ function App() {
                             maxCount={3}
                             searchable={false}
                             className="w-full! min-h-9! h-9!"
-                            options={Array.from({ length: 20 }, (_, i) => ({
+                            options={Array.from({ length: preinfo.maxWeek ?? 20 }, (_, i) => ({
                               label: `第 ${i + 1} 周`,
                               value: `${i + 1}`,
                             }))}
@@ -192,7 +198,7 @@ function App() {
                             maxCount={3}
                             searchable={false}
                             className="w-full! min-h-9! h-9!"
-                            options={Array.from({ length: 20 }, (_, i) => ({
+                            options={Array.from({ length: preinfo.classStartTime?.length ?? 20 }, (_, i) => ({
                               label: `第 ${i + 1} 节`,
                               value: `${i + 1}`,
                             }))}
@@ -209,7 +215,18 @@ function App() {
                   />
                 </div>
               </div>
-              <div>
+              <div className="flex flex-col space-y-2">
+                <Button
+                  type="button"
+                  variant="ghost"
+                  className="cursor-pointer"
+                  onClick={() => {
+                    const field = form.getValues(`dynamicFields.${index}`);
+                    append({ ...field, id: crypto.randomUUID() });
+                  }}
+                >
+                  <CopyIcon />
+                </Button>
                 <Button
                   type="button"
                   variant="ghost"
@@ -241,7 +258,9 @@ function App() {
           >
             <PlusIcon className="text-gray-400" />
           </Button>
-          <Button type="submit">Submit</Button>
+          <div className="w-full flex justify-end">
+            <Button type="submit">Submit</Button>
+          </div>
         </form>
       </Form>
     </div>
