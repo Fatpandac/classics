@@ -45,7 +45,7 @@ const eventSchema = z.object({
   teacher: z.string().optional(),
   location: z.string().optional(),
   week: z.array(number().min(1).max(20)).max(20).nonempty("请选择上课周次"),
-  weekdays: z.number().max(7, "最多选择星期天").min(0, "请选择上课星期"),
+  weekdays: z.number().max(7, "最多选择星期天").min(1, "请选择上课星期"),
   time: z.array(number()).min(1, "请选择上课节次").max(20),
 });
 
@@ -116,14 +116,20 @@ function App() {
                     name={`events.${index}.classname`}
                     render={({ field: dynamicField }) => (
                       <FormItem>
-                        {index === 0 && <FormLabel>课程名称</FormLabel>}
+                        <div className="flex items-end">
+                          {index === 0 && (
+                            <FormLabel className="inline-block text-md">
+                              课程名称
+                            </FormLabel>
+                          )}
+                          <FormMessage className="inline-block text-xs ml-2 mb-0.5" />
+                        </div>
                         <FormControl>
                           <Input
                             {...dynamicField}
                             placeholder="请输入课程名称"
                           />
                         </FormControl>
-                        <FormMessage />
                       </FormItem>
                     )}
                   />
@@ -132,14 +138,20 @@ function App() {
                     name={`events.${index}.teacher`}
                     render={({ field: dynamicField }) => (
                       <FormItem>
-                        {index === 0 && <FormLabel>教师名称</FormLabel>}
+                        <div className="flex items-end">
+                          {index === 0 && (
+                            <FormLabel className="inline-block text-md">
+                              教师名称
+                            </FormLabel>
+                          )}
+                          <FormMessage className="inline-block text-xs ml-2 mb-0.5" />
+                        </div>
                         <FormControl>
                           <Input
                             {...dynamicField}
                             placeholder="请输入教师名称"
                           />
                         </FormControl>
-                        <FormMessage />
                       </FormItem>
                     )}
                   />
@@ -148,14 +160,20 @@ function App() {
                     name={`events.${index}.location`}
                     render={({ field: dynamicField }) => (
                       <FormItem>
-                        {index === 0 && <FormLabel>上课地址</FormLabel>}
+                        <div className="flex items-end">
+                          {index === 0 && (
+                            <FormLabel className="inline-block text-md">
+                              上课地址
+                            </FormLabel>
+                          )}
+                          <FormMessage className="inline-block text-xs ml-2 mb-0.5" />
+                        </div>
                         <FormControl>
                           <Input
                             {...dynamicField}
                             placeholder="请输入上课地址"
                           />
                         </FormControl>
-                        <FormMessage />
                       </FormItem>
                     )}
                   />
@@ -164,22 +182,26 @@ function App() {
                     name={`events.${index}.weekdays`}
                     render={({ field }) => (
                       <FormItem>
-                        {index === 0 && <FormLabel>星期</FormLabel>}
-                        <Select>
+                        <div className="flex items-end">
+                          {index === 0 && (
+                            <FormLabel className="inline-block text-md">
+                              星期
+                            </FormLabel>
+                          )}
+                          <FormMessage className="inline-block text-xs ml-2 mb-0.5" />
+                        </div>
+                        <Select
+                          onValueChange={(val) => field.onChange(Number(val))}
+                        >
                           <FormControl>
                             <SelectTrigger className="w-full">
                               <SelectValue placeholder="选择星期" />
                             </SelectTrigger>
                           </FormControl>
-                          <FormMessage />
                           <SelectContent>
                             {["一", "二", "三", "四", "五", "六", "日"].map(
                               (day, i) => (
-                                <SelectItem
-                                  key={i}
-                                  value={(i + 1).toString()}
-                                  onClick={() => field.onChange(i + 1)}
-                                >
+                                <SelectItem key={i} value={(i + 1).toString()}>
                                   周{day}
                                 </SelectItem>
                               ),
@@ -196,7 +218,14 @@ function App() {
                     name={`events.${index}.week`}
                     render={({ field }) => (
                       <FormItem>
-                        {index === 0 && <FormLabel>排课周次</FormLabel>}
+                        <div className="flex items-end">
+                          {index === 0 && (
+                            <FormLabel className="inline-block text-md">
+                              排课周次
+                            </FormLabel>
+                          )}
+                          <FormMessage className="inline-block text-xs ml-2 mb-0.5" />
+                        </div>
                         <FormControl>
                           <MultiSelect
                             maxCount={3}
@@ -216,7 +245,6 @@ function App() {
                             placeholder="选择周次"
                           />
                         </FormControl>
-                        <FormMessage />
                       </FormItem>
                     )}
                   />
@@ -225,7 +253,14 @@ function App() {
                     name={`events.${index}.time`}
                     render={({ field }) => (
                       <FormItem>
-                        {index === 0 && <FormLabel>排课节次</FormLabel>}
+                        <div className="flex items-end">
+                          {index === 0 && (
+                            <FormLabel className="inline-block text-md">
+                              排课节次
+                            </FormLabel>
+                          )}
+                          <FormMessage className="inline-block text-xs ml-2 mb-0.5" />
+                        </div>
                         <FormControl>
                           <MultiSelect
                             maxCount={3}
@@ -245,7 +280,6 @@ function App() {
                             placeholder="选择节次"
                           />
                         </FormControl>
-                        <FormMessage />
                       </FormItem>
                     )}
                   />
