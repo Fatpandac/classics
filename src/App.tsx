@@ -36,7 +36,7 @@ import { VisuallyHidden } from "@radix-ui/react-visually-hidden";
 import { useState } from "react";
 import Preview, { type Event } from "./Preview";
 import { Dialog, DialogContent, DialogTrigger } from "./components/ui/dialog";
-import { generateEvent } from "./utils/ics";
+import { generateEvent, generateIcs } from "./utils/ics";
 import { DialogTitle } from "@radix-ui/react-dialog";
 
 const eventSchema = z.object({
@@ -44,8 +44,8 @@ const eventSchema = z.object({
   classname: z.string().min(1, "请输入课程名称"),
   teacher: z.string().optional(),
   location: z.string().optional(),
-  week: z.array(number().min(1).max(20)).min(1, "请选择上课周次").max(20),
-  weekdays: z.number().min(1, "请选择上课星期").max(7, "最多选择星期天"),
+  week: z.array(number().min(1).max(20)).max(20).nonempty("请选择上课周次"),
+  weekdays: z.number().max(7, "最多选择星期天").min(0, "请选择上课星期"),
   time: z.array(number()).min(1, "请选择上课节次").max(20),
 });
 
@@ -81,7 +81,16 @@ function App() {
   });
 
   const onSubmit = (data: z.infer<typeof formSchema>) => {
-    console.log(data);
+    const ics = generateIcs(data.events, preinfo);
+    const blob = new Blob([ics], { type: "text/calendar;charset=utf-8" });
+    const url = URL.createObjectURL(blob);
+    const link = document.createElement("a");
+    link.href = url;
+    link.download = "timetable.ics";
+    document.body.appendChild(link);
+    link.click();
+    document.body.removeChild(link);
+    URL.revokeObjectURL(url);
   };
 
   const events = useWatch({ control: form.control, name: "events" });
