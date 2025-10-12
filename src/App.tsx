@@ -1,8 +1,4 @@
-import {
-  useForm,
-  useFieldArray,
-  useWatch,
-} from "react-hook-form";
+import { useForm, useFieldArray, useWatch } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import {
   Form,
@@ -56,6 +52,7 @@ export type FormEvent = z.infer<typeof eventSchema>;
 
 function App() {
   const [preinfo, setPreinfo] = useState<Partial<PreinfoData>>({});
+  const [openPreview, setOpenPreview] = useState(false);
   const [preveiwEvents, setPreviewEvents] = useState<Array<Event>>([]);
   const form = useForm<z.infer<typeof formSchema>>({
     resolver: zodResolver(formSchema),
@@ -328,13 +325,28 @@ function App() {
             <PlusIcon className="text-gray-400" />
           </Button>
           <div className="w-full flex justify-end gap-2">
-            <Dialog>
+            <Dialog
+              open={openPreview}
+              onOpenChange={(open) => {
+                if (!open) {
+                  setOpenPreview(false);
+                }
+              }}
+            >
               <DialogTrigger className="cursor-pointer" asChild>
                 <Button
                   variant="outline"
                   onClick={() => {
-                    const data = generateEvent(events, preinfo);
-                    setPreviewEvents(data);
+                    form.trigger().then((isValid) => {
+                      if (isValid) {
+                        const data = generateEvent(
+                          events,
+                          preinfo as PreinfoData,
+                        );
+                        setPreviewEvents(data);
+                        setOpenPreview(true);
+                      }
+                    });
                   }}
                 >
                   Preview
