@@ -30,9 +30,8 @@ import PreinfoForm, { type PreinfoData } from "./PreinfoForm";
 import { VisuallyHidden } from "@radix-ui/react-visually-hidden";
 import { useState } from "react";
 import Preview, { type Event } from "./Preview";
-import { Dialog, DialogContent, DialogTrigger } from "./components/ui/dialog";
+import { Dialog, DialogContent, DialogDescription, DialogTitle, DialogTrigger } from "./components/ui/dialog";
 import { generateEvent, generateIcs } from "./utils/ics";
-import { DialogTitle } from "@radix-ui/react-dialog";
 
 const eventSchema = z.object({
   id: z.uuid(),
@@ -356,6 +355,9 @@ function App() {
               <DialogContent className="w-3/4! max-w-3/4! p-0! aspect-video">
                 <VisuallyHidden>
                   <DialogTitle />
+                  <DialogDescription>
+                    预览课程表
+                  </DialogDescription>
                 </VisuallyHidden>
                 <Preview events={preveiwEvents} />
               </DialogContent>
