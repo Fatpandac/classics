@@ -1,7 +1,6 @@
 import {
   useForm,
   useFieldArray,
-  type DeepPartial,
   useWatch,
 } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
@@ -56,7 +55,7 @@ const formSchema = z.object({
 export type FormEvent = z.infer<typeof eventSchema>;
 
 function App() {
-  const [preinfo, setPreinfo] = useState<DeepPartial<PreinfoData>>({});
+  const [preinfo, setPreinfo] = useState<Partial<PreinfoData>>({});
   const [preveiwEvents, setPreviewEvents] = useState<Array<Event>>([]);
   const form = useForm<z.infer<typeof formSchema>>({
     resolver: zodResolver(formSchema),
@@ -81,7 +80,7 @@ function App() {
   });
 
   const onSubmit = (data: z.infer<typeof formSchema>) => {
-    const ics = generateIcs(data.events, preinfo);
+    const ics = generateIcs(data.events, preinfo as PreinfoData);
     const blob = new Blob([ics], { type: "text/calendar;charset=utf-8" });
     const url = URL.createObjectURL(blob);
     const link = document.createElement("a");
@@ -267,7 +266,7 @@ function App() {
                             searchable={false}
                             className="w-full! min-h-9! h-9!"
                             options={Array.from(
-                              { length: preinfo.classStartTime?.length ?? 20 },
+                              { length: preinfo.classStartTime?.length ?? 0 },
                               (_, i) => ({
                                 label: `第 ${i + 1} 节`,
                                 value: `${i + 1}`,

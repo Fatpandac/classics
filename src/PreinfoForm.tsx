@@ -10,7 +10,7 @@ import {
   FormLabel,
   FormMessage,
 } from "./components/ui/form";
-import { useFieldArray, useForm, useWatch, type DeepPartial } from "react-hook-form";
+import { useFieldArray, useForm, useWatch } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { Input } from "./components/ui/input";
 import { Popover, PopoverContent } from "@radix-ui/react-popover";
@@ -24,6 +24,7 @@ import { useEffect } from "react";
 dayjs.extend(customParseFormat);
 
 const formSchema = z.object({
+  calendarName: z.string().optional(),
   maxWeek: z.number().min(1, "请输入最大周数").max(20, "最大周数不能超过20"),
   classStartTime: z
     .array(
@@ -34,15 +35,16 @@ const formSchema = z.object({
     .max(20, "最多添加 20 节课时")
     .nonempty("请至少添加一节课时"),
   classTime: z.number().min(1, "请输入每节课时间"),
-  startDate: z.date().max(new Date(), "开始日期不能晚于今天"),
+  startDate: z.date(),
 });
 
 export type PreinfoData = z.infer<typeof formSchema>;
 
-function PreinfoForm(props: { onChange: (data: DeepPartial<PreinfoData>) => void }) {
+function PreinfoForm(props: { onChange: (data: PreinfoData) => void }) {
   const form = useForm<PreinfoData>({
     resolver: zodResolver(formSchema),
     defaultValues: {
+      calendarName: "课程表",
       maxWeek: 20,
       classStartTime: [{ time: "08:00" }],
       classTime: 45,
@@ -62,23 +64,47 @@ function PreinfoForm(props: { onChange: (data: DeepPartial<PreinfoData>) => void
   });
 
   useEffect(() => {
-    props.onChange(allFormValues);
-  }, [allFormValues, props]);
+    form.trigger().then((res) => {
+      if (res) {
+        props.onChange(allFormValues as PreinfoData);
+      }
+    });
+  }, [allFormValues, props, form]);
 
   return (
     <div className="not-last:mb-4 not-last:border-b-1 not-last:pb-4 border-b-slate-200">
       <Form {...form}>
         <form className="space-y-4">
           <div className="flex flex-col space-y-2">
-            <div className="w-full grid grid-cols-3 gap-4">
+            <div className="w-full grid grid-cols-4 gap-4">
+              <FormField
+                control={form.control}
+                name="calendarName"
+                render={({ field }) => (
+                  <FormItem>
+                    <FormLabel>日历名称</FormLabel>
+                    <FormControl>
+                      <Input {...field} placeholder="请输入课程表名称" />
+                    </FormControl>
+                    <FormMessage />
+                  </FormItem>
+                )}
+              />
               <FormField
                 control={form.control}
                 name="maxWeek"
-                render={({ field: dynamicField }) => (
+                render={({ field }) => (
                   <FormItem>
                     <FormLabel>最大周数</FormLabel>
                     <FormControl>
-                      <Input {...dynamicField} type="number" placeholder="请输入最大周数" />
+                      <Input
+                        {...field}
+                        type="number"
+                        placeholder="请输入最大周数"
+                        onChange={(e) => {
+                          field.onChange(parseInt(e.target.value, 10));
+                        }}
+                      />
                     </FormControl>
                     <FormMessage />
                   </FormItem>
@@ -87,11 +113,18 @@ function PreinfoForm(props: { onChange: (data: DeepPartial<PreinfoData>) => void
               <FormField
                 control={form.control}
                 name="classTime"
-                render={({ field: dynamicField }) => (
+                render={({ field }) => (
                   <FormItem>
                     <FormLabel>每节课时</FormLabel>
                     <FormControl>
-                      <Input {...dynamicField} type="number" placeholder="请输入每节课时" />
+                      <Input
+                        {...field}
+                        type="number"
+                        placeholder="请输入每节课时"
+                        onChange={(e) => {
+                          field.onChange(parseInt(e.target.value, 10));
+                        }}
+                      />
                     </FormControl>
                     <FormMessage />
                   </FormItem>
