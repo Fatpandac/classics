@@ -71,7 +71,7 @@ const eventSchema = z.object({
   teacher: z.string().optional(),
   location: z.string().optional(),
   week: z.array(number().min(1).max(20)).max(20).nonempty("请选择上课周次"),
-  weekdays: z.number().max(7, "最多选择星期天").min(1, "请选择上课星期"),
+  weekdays: z.string().max(7, "最多选择星期天").min(1, "请选择上课星期"),
   time: z.array(number()).min(1, "请选择上课节次").max(20),
 });
 const formSchema = z.object({
@@ -81,6 +81,23 @@ const formSchema = z.object({
 
 export type PreinfoData = z.infer<typeof formSchema>;
 export type FormEvent = z.infer<typeof eventSchema>;
+
+function FieldTitle({
+  title,
+  showTitle,
+}: {
+  title: string;
+  showTitle: boolean;
+}) {
+  return (
+    <div className="flex flex-col md:flex-row md:items-end">
+      {showTitle && (
+        <FormLabel className="inline-block text-md">{title}</FormLabel>
+      )}
+      <FormMessage className="inline-block text-xs md:ml-2 mb-0.5" />
+    </div>
+  );
+}
 
 function App() {
   const [openPreview, setOpenPreview] = useState(false);
@@ -102,7 +119,7 @@ function App() {
           teacher: "",
           location: "",
           week: [],
-          weekdays: 0,
+          weekdays: "0",
           time: [],
         },
       ],
@@ -123,6 +140,7 @@ function App() {
     if (data) {
       try {
         const parsed: PreinfoData = base64UrlToJson(data);
+        console.log(parsed);
         form.reset(parsed);
       } catch (e) {
         console.error("Failed to parse data from URL", e);
@@ -163,30 +181,26 @@ function App() {
 
   return (
     <FormProvider {...form}>
-      <div className="h-screen w-screen p-10">
+      <div className="p-5 w-screen md:p-10 md:h-screen">
         <PreinfoForm />
         <Form {...form}>
           <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-4">
             {fields.map((field, index) => (
               <div
                 key={field.id}
-                className="flex items-end space-x-2 not-last:pb-3"
+                className="flex flex-col items-center md:flex-row md:items-end md:space-x-2 md:not-last:pb-3"
               >
-                <div className="flex-1 space-y-2">
-                  <div className="grid grid-cols-4 gap-4">
+                <div className="flex-1 space-y-2 w-full md:w-auto">
+                  <div className="w-full grid grid-cols-2 md:grid-cols-4 gap-4">
                     <FormField
                       control={form.control}
                       name={`events.${index}.classname`}
                       render={({ field: dynamicField }) => (
                         <FormItem>
-                          <div className="flex items-end">
-                            {index === 0 && (
-                              <FormLabel className="inline-block text-md">
-                                课程名称
-                              </FormLabel>
-                            )}
-                            <FormMessage className="inline-block text-xs ml-2 mb-0.5" />
-                          </div>
+                          <FieldTitle
+                            title="课程名称"
+                            showTitle={index === 0}
+                          />
                           <FormControl>
                             <Input
                               {...dynamicField}
@@ -201,14 +215,10 @@ function App() {
                       name={`events.${index}.teacher`}
                       render={({ field: dynamicField }) => (
                         <FormItem>
-                          <div className="flex items-end">
-                            {index === 0 && (
-                              <FormLabel className="inline-block text-md">
-                                教师名称
-                              </FormLabel>
-                            )}
-                            <FormMessage className="inline-block text-xs ml-2 mb-0.5" />
-                          </div>
+                          <FieldTitle
+                            title="教师名称"
+                            showTitle={index === 0}
+                          />
                           <FormControl>
                             <Input
                               {...dynamicField}
@@ -223,14 +233,10 @@ function App() {
                       name={`events.${index}.location`}
                       render={({ field: dynamicField }) => (
                         <FormItem>
-                          <div className="flex items-end">
-                            {index === 0 && (
-                              <FormLabel className="inline-block text-md">
-                                上课地址
-                              </FormLabel>
-                            )}
-                            <FormMessage className="inline-block text-xs ml-2 mb-0.5" />
-                          </div>
+                          <FieldTitle
+                            title="上课地址"
+                            showTitle={index === 0}
+                          />
                           <FormControl>
                             <Input
                               {...dynamicField}
@@ -245,16 +251,11 @@ function App() {
                       name={`events.${index}.weekdays`}
                       render={({ field }) => (
                         <FormItem>
-                          <div className="flex items-end">
-                            {index === 0 && (
-                              <FormLabel className="inline-block text-md">
-                                星期
-                              </FormLabel>
-                            )}
-                            <FormMessage className="inline-block text-xs ml-2 mb-0.5" />
-                          </div>
+                          <FieldTitle title="星期" showTitle={index === 0} />
                           <Select
-                            onValueChange={(val) => field.onChange(Number(val))}
+                            onValueChange={field.onChange}
+                            value={field.value}
+                            defaultValue={field.value}
                           >
                             <FormControl>
                               <SelectTrigger className="w-full">
@@ -284,14 +285,10 @@ function App() {
                       name={`events.${index}.week`}
                       render={({ field }) => (
                         <FormItem>
-                          <div className="flex items-end">
-                            {index === 0 && (
-                              <FormLabel className="inline-block text-md">
-                                排课周次
-                              </FormLabel>
-                            )}
-                            <FormMessage className="inline-block text-xs ml-2 mb-0.5" />
-                          </div>
+                          <FieldTitle
+                            title="排课周次"
+                            showTitle={index === 0}
+                          />
                           <FormControl>
                             <MultiSelect
                               maxCount={3}
@@ -319,14 +316,10 @@ function App() {
                       name={`events.${index}.time`}
                       render={({ field }) => (
                         <FormItem>
-                          <div className="flex items-end">
-                            {index === 0 && (
-                              <FormLabel className="inline-block text-md">
-                                排课节次
-                              </FormLabel>
-                            )}
-                            <FormMessage className="inline-block text-xs ml-2 mb-0.5" />
-                          </div>
+                          <FieldTitle
+                            title="排课节次"
+                            showTitle={index === 0}
+                          />
                           <FormControl>
                             <MultiSelect
                               maxCount={3}
@@ -351,7 +344,7 @@ function App() {
                     />
                   </div>
                 </div>
-                <div className="flex flex-col space-y-2">
+                <div className="w-full md:w-auto flex flex-row md:flex-col gap-2 mt-2 md:mt-0">
                   <Button
                     type="button"
                     variant="ghost"
@@ -387,7 +380,7 @@ function App() {
                   teacher: "",
                   location: "",
                   week: [],
-                  weekdays: 0,
+                  weekdays: "0",
                   time: [],
                 })
               }

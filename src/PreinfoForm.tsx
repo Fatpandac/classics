@@ -39,7 +39,7 @@ function PreinfoForm() {
     <div className="not-last:mb-4 not-last:border-b-1 not-last:pb-4 border-b-slate-200">
       <Form {...form}>
         <div className="flex flex-col space-y-2">
-          <div className="w-full grid grid-cols-4 gap-4">
+          <div className="w-full grid grid-cols-2 md:grid-cols-4 gap-4">
             <FormField
               control={form.control}
               name="preinfo.calendarName"
@@ -176,7 +176,7 @@ function PreinfoForm() {
                 name={`preinfo.classStartTime.${index}`}
                 render={({ field: dynamicField }) => {
                   return (
-                    <FormItem className="w-24">
+                    <FormItem className="w-26">
                       <FormLabel>
                         {`第 ${index + 1} 节`}
                         <Button

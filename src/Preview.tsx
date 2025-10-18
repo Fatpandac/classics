@@ -46,16 +46,17 @@ export default function Preview(props: { events: Array<Event> }) {
                     eventDate.getDate() === day.date.getDate()
                   );
                 });
+
                 return (
                   <CalendarDayButton day={day} modifiers={modifiers} {...props}>
                     {children}
-                    <div className="absolute bottom-2 left-1 right-1 flex justify-center gap-0.5">
+                    <div className="absolute bottom-0 md:bottom-2 left-1 right-1 flex justify-center gap-0.5">
                       {!modifiers.outside &&
                         currentDayEvents.length > 0 &&
-                        currentDayEvents.map((_, index) => {
+                        currentDayEvents.slice(0, 3).map((_, index) => {
                           return (
                             <Badge
-                              className="h-1! w-1! p-1 rounded-full tabular-nums bg-blue-300"
+                              className="p-[2px]! md:p-1! rounded-full tabular-nums bg-blue-300"
                               key={index}
                             ></Badge>
                           );
@@ -67,7 +68,7 @@ export default function Preview(props: { events: Array<Event> }) {
             }}
             required
           />
-          <div className="no-scrollbar w-1/3">
+          <div className="no-scrollbar w-1/3 hidden md:block">
             <div className="flex w-full flex-col gap-2">
               {currentDayEvents.length > 0 &&
                 events
@@ -86,7 +87,8 @@ export default function Preview(props: { events: Array<Event> }) {
                     >
                       <div className="font-medium">{event.title}</div>
                       <div className="text-muted-foreground text-xs">
-                        {dayjs(event.from).format("MM月DD日 HH:mm")} - {dayjs(event.to).format("HH:mm")}
+                        {dayjs(event.from).format("MM月DD日 HH:mm")} -{" "}
+                        {dayjs(event.to).format("HH:mm")}
                       </div>
                     </div>
                   ))}

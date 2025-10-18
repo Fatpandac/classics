@@ -9,10 +9,10 @@ export function generateEvent(
 
   return events
     .map((event) => {
-      const { classname, week, time } = event;
+      const { classname, week, time, weekdays } = event;
 
       return week.map((w) => {
-        const weekDate = dayjs(startDate).add(w - 1, "week");
+        const weekDate = dayjs(startDate).add(w - 1, "week").add(weekdays, "day");
         const timeDate = time
           .map((t) => classStartTime[t - 1]?.time)
           .filter(Boolean);
