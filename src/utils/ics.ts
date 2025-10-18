@@ -12,7 +12,7 @@ export function generateEvent(
       const { classname, week, time, weekdays } = event;
 
       return week.map((w) => {
-        const weekDate = dayjs(startDate).add(w - 1, "week").add(weekdays, "day");
+        const weekDate = dayjs(startDate).add(w - 1, "week").add(parseInt(weekdays, 10), "day");
         const timeDate = time
           .map((t) => classStartTime[t - 1]?.time)
           .filter(Boolean);
@@ -69,7 +69,7 @@ export function generateIcs(
 
     for (const timeWeek of week) {
       for (const t of time) {
-        const classDate = weeks[timeWeek - 1][weekdays];
+        const classDate = weeks[timeWeek - 1][parseInt(weekdays, 10)];
 
         const startTime = dayjs(classStartTime[t]?.time, "HH:mm");
 
