@@ -1,6 +1,4 @@
-import z from "zod";
 import dayjs from "dayjs";
-import customParseFormat from "dayjs/plugin/customParseFormat";
 import { zhCN } from "react-day-picker/locale";
 import {
   Form,
@@ -10,8 +8,11 @@ import {
   FormLabel,
   FormMessage,
 } from "./components/ui/form";
-import { useFieldArray, useForm, useWatch } from "react-hook-form";
-import { zodResolver } from "@hookform/resolvers/zod";
+import {
+  useFieldArray,
+  useFormContext,
+  useWatch,
+} from "react-hook-form";
 import { Input } from "./components/ui/input";
 import { Popover, PopoverContent } from "@radix-ui/react-popover";
 import { PopoverTrigger } from "./components/ui/popover";
@@ -19,57 +20,17 @@ import { Button } from "./components/ui/button";
 import { cn } from "./lib/utils";
 import { CalendarIcon, MinusCircleIcon, PlusIcon } from "lucide-react";
 import { Calendar, CalendarDayButton } from "./components/ui/calendar";
-import { useEffect } from "react";
+import type { PreinfoData } from "./App";
 
-dayjs.extend(customParseFormat);
+function PreinfoForm() {
+  const form = useFormContext<PreinfoData>();
 
-const formSchema = z.object({
-  calendarName: z.string().optional(),
-  maxWeek: z.number().min(1, "请输入最大周数").max(20, "最大周数不能超过20"),
-  classStartTime: z
-    .array(
-      z.object({
-        time: z.string().min(1, "不能添加空的课时"),
-      }),
-    )
-    .max(20, "最多添加 20 节课时")
-    .nonempty("请至少添加一节课时"),
-  classTime: z.number().min(1, "请输入每节课时间"),
-  startDate: z.date(),
-});
-
-export type PreinfoData = z.infer<typeof formSchema>;
-
-function PreinfoForm(props: { onChange: (data: PreinfoData) => void }) {
-  const form = useForm<PreinfoData>({
-    resolver: zodResolver(formSchema),
-    defaultValues: {
-      calendarName: "课程表",
-      maxWeek: 20,
-      classStartTime: [{ time: "08:00" }],
-      classTime: 45,
-      startDate: dayjs().startOf("week").add(1, "day").toDate(),
-    },
-  });
-
-  const dates = useWatch({ control: form.control, name: "classStartTime" });
+  const dates = useWatch({ control: form.control, name: "preinfo.classStartTime" });
 
   const { fields, append, remove } = useFieldArray({
     control: form.control,
-    name: "classStartTime",
+    name: "preinfo.classStartTime",
   });
-
-  const allFormValues = useWatch({
-    control: form.control,
-  });
-
-  useEffect(() => {
-    form.trigger().then((res) => {
-      if (res) {
-        props.onChange(allFormValues as PreinfoData);
-      }
-    });
-  }, [allFormValues, props, form]);
 
   return (
     <div className="not-last:mb-4 not-last:border-b-1 not-last:pb-4 border-b-slate-200">
@@ -79,7 +40,7 @@ function PreinfoForm(props: { onChange: (data: PreinfoData) => void }) {
             <div className="w-full grid grid-cols-4 gap-4">
               <FormField
                 control={form.control}
-                name="calendarName"
+                name="preinfo.calendarName"
                 render={({ field }) => (
                   <FormItem>
                     <FormLabel>日历名称</FormLabel>
@@ -92,7 +53,7 @@ function PreinfoForm(props: { onChange: (data: PreinfoData) => void }) {
               />
               <FormField
                 control={form.control}
-                name="maxWeek"
+                name="preinfo.maxWeek"
                 render={({ field }) => (
                   <FormItem>
                     <FormLabel>最大周数</FormLabel>
@@ -112,7 +73,7 @@ function PreinfoForm(props: { onChange: (data: PreinfoData) => void }) {
               />
               <FormField
                 control={form.control}
-                name="classTime"
+                name="preinfo.classTime"
                 render={({ field }) => (
                   <FormItem>
                     <FormLabel>每节课时</FormLabel>
@@ -132,7 +93,7 @@ function PreinfoForm(props: { onChange: (data: PreinfoData) => void }) {
               />
               <FormField
                 control={form.control}
-                name="startDate"
+                name="preinfo.startDate"
                 render={({ field }) => (
                   <FormItem>
                     <FormLabel>第一周的星期一</FormLabel>
@@ -147,7 +108,7 @@ function PreinfoForm(props: { onChange: (data: PreinfoData) => void }) {
                             )}
                           >
                             {field.value ? (
-                              field.value.toLocaleDateString()
+                              dayjs(field.value).format("YYYY-MM-DD")
                             ) : (
                               <span>Pick a date</span>
                             )}
@@ -161,7 +122,7 @@ function PreinfoForm(props: { onChange: (data: PreinfoData) => void }) {
                       >
                         <Calendar
                           mode="single"
-                          selected={field.value}
+                          selected={field.value ? new Date(field.value) : undefined}
                           onSelect={field.onChange}
                           locale={zhCN}
                           components={{
@@ -197,7 +158,7 @@ function PreinfoForm(props: { onChange: (data: PreinfoData) => void }) {
                 <FormField
                   key={field.id}
                   control={form.control}
-                  name={`classStartTime.${index}`}
+                  name={`preinfo.classStartTime.${index}`}
                   render={({ field: dynamicField }) => {
                     return (
                       <FormItem className="w-24">
@@ -223,9 +184,9 @@ function PreinfoForm(props: { onChange: (data: PreinfoData) => void }) {
                             value={dynamicField.value.time}
                             onChange={(e) => {
                               const value = e.target.value;
-                              const current = form.getValues("classStartTime");
+                              const current = form.getValues("preinfo.classStartTime");
                               current[index].time = value;
-                              form.setValue("classStartTime", current);
+                              form.setValue("preinfo.classStartTime", current);
                             }}
                             placeholder="请选择上课时间"
                           />
@@ -244,8 +205,8 @@ function PreinfoForm(props: { onChange: (data: PreinfoData) => void }) {
                 size="icon"
                 onClick={() => {
                   const freeClassTime = 10;
-                  const current = form.getValues("classStartTime");
-                  const classTime = form.getValues("classTime");
+                  const current = form.getValues("preinfo.classStartTime");
+                  const classTime = form.getValues("preinfo.classTime");
                   const lastClassTime = current[current.length - 1];
                   const appendClassTime = {
                     time: dayjs(lastClassTime.time, "HH:mm")
