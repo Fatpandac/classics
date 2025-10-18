@@ -1,10 +1,9 @@
-import type { FormEvent } from "@/App";
-import type { PreinfoData } from "@/PreinfoForm";
+import type { FormEvent, PreinfoData } from "@/App";
 import dayjs, { Dayjs } from "dayjs";
 
 export function generateEvent(
   events: Array<FormEvent>,
-  preinfo: PreinfoData,
+  preinfo: PreinfoData["preinfo"],
 ) {
   const { startDate, classStartTime, classTime } = preinfo;
 
@@ -32,9 +31,10 @@ export function generateEvent(
 
 export function generateIcs(
   events: Array<FormEvent>,
-  preinfo: PreinfoData,
+  preinfo: PreinfoData["preinfo"],
 ) {
-  const { maxWeek, startDate, classStartTime, classTime, calendarName } = preinfo;
+  const { maxWeek, startDate, classStartTime, classTime, calendarName } =
+    preinfo;
 
   // 构建每周日期表
   const weeks = [];
@@ -74,13 +74,13 @@ export function generateIcs(
         const startTime = dayjs(classStartTime[t]?.time, "HH:mm");
 
         const classStartDate = classDate
-        .hour(startTime.hour())
-        .minute(startTime.minute())
-        .second(0);
+          .hour(startTime.hour())
+          .minute(startTime.minute())
+          .second(0);
         const classEndDate = classDate
-        .hour(startTime.hour())
-        .minute(startTime.minute() + classTime)
-        .second(0);
+          .hour(startTime.hour())
+          .minute(startTime.minute() + classTime)
+          .second(0);
 
         const Description = ` 任课教师: ${teacher}`;
 
